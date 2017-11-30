@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "xPath Finder",
+  "description": "Click on any element to get the xPath",
+  "homepage_url": "https://github.com/trembacz/xpath-finder",
+  "version": "0.3",
+  "icons": {
+    "64": "icons/default-64.png"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_icon": "icons/default-64.png",
+    "default_title": "Click on any element to get the xPath"
+  },
+  "permissions": ["activeTab","<all_urls>"]
+}
