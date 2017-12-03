@@ -14,7 +14,7 @@ https://addons.mozilla.org/addon/xpath_finder/
 
 ![](https://i.imgur.com/o9cQvp0.png)
 
-![](https://i.imgur.com/iQ8pTML.png)
+![](https://i.imgur.com/Lj0YW63.png)
 
 ![](https://i.imgur.com/8RsV8fw.png)
 
