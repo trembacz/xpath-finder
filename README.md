@@ -5,10 +5,19 @@ Firefox plugin to get the elements xPath (works also on Chrome)
 https://addons.mozilla.org/addon/xpath_finder/
 
 ## Usage
-Click on the plugin icon, cursor will be changed to the *crosshair*, now just click on the element and his xPath will show in the gray panel at the bottom of the page.
+1. Click on the plugin icon, cursor will be changed to the **crosshair**
+2. Hover over the desired element **(elements are highlighted on hover)**
+3. Click on the element and his xPath will display in the panel at the bottom of the page
+
 
 ![](http://i.imgur.com/dPQwezY.png)
 
-![](http://i.imgur.com/mO3FdHL.png)
+![](https://i.imgur.com/o9cQvp0.png)
 
-![](http://i.imgur.com/Tn7PJWP.png)
+![](https://i.imgur.com/iQ8pTML.png)
+
+![](https://i.imgur.com/8RsV8fw.png)
+
+![](https://i.imgur.com/HJl6hFj.png)
+
+![](https://i.imgur.com/1wOuAJq.png)
