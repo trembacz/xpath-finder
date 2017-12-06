@@ -1,8 +1,10 @@
 # xPath Finder
 
-Firefox plugin to get the elements xPath (works also on Chrome)
+Firefox & Chrome plugin to get the elements xPath.
 
 https://addons.mozilla.org/addon/xpath_finder/
+
+https://chrome.google.com/webstore/detail/xpath-finder/ihnknokegkbpmofmafnkoadfjkhlogph
 
 ## Usage
 1. Click on the plugin icon, cursor will be changed to the **crosshair**
