@@ -1,4 +1,5 @@
 let tabs = {};
+chrome = this.browser || this.chrome;
 const inspectFile = 'inspect.js';
 const activeIcon = 'active-64.png';
 const defaultIcon = 'default-64.png';
@@ -42,12 +43,12 @@ function deactivateItem(tab) {
 }
 
 function getActiveTab() {
-  var gettingActiveTab = chrome.tabs.query({active: true, currentWindow: true});
-  // check chrome, on firefox works without if
-  if (gettingActiveTab) {
-    gettingActiveTab.then(deactivateItem);
-  }
-  
+  chrome.tabs.query({
+      active: true,
+      currentWindow: true
+  }, function(tabs) {
+      deactivateItem(tabs);
+  });  
 }
 
 function isSupportedProtocol(urlString) {
@@ -59,4 +60,3 @@ function isSupportedProtocol(urlString) {
 
 chrome.tabs.onUpdated.addListener(getActiveTab);
 chrome.browserAction.onClicked.addListener(toggle);
-// browser.tabs.onActivated.addListener(getActiveTab);

@@ -3,7 +3,7 @@
   "name": "xPath Finder",
   "description": "Click on any element to get the xPath",
   "homepage_url": "https://github.com/trembacz/xpath-finder",
-  "version": "0.8",
+  "version": "0.9",
   "icons": {
     "64": "icons/default-64.png"
   },
@@ -14,5 +14,8 @@
     "default_icon": "icons/default-64.png",
     "default_title": "Click on any element to get the xPath"
   },
-  "permissions": ["activeTab","<all_urls>"]
+  "options_ui": {
+    "page": "options.html"
+  },
+  "permissions": ["activeTab","<all_urls>", "storage"]
 }

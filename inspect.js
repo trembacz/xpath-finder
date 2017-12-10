@@ -3,15 +3,11 @@ var injected = injected || (function() {
     const Inspector = function() {
       this.getData = this.getData.bind(this);
       this.draw = this.draw.bind(this);
+      this.setOptions = this.setOptions.bind(this);
       this.contentNode = 'xpath-content';
       this.wrapNode = 'xpath-wrap';
       this.canvasNode = 'xpath-canvas';
       this.cssNode = 'xpath-css';
-      this.styles = "\
-        * {cursor:crosshair!important;}\
-        #xpath-wrap {pointer-events:none;top:0;position:absolute;z-index:10000000;}\
-        #xpath-content {cursor:initial!important;padding:10px;background:gray;color:white;position:fixed;bottom:0;font-size:14px;z-index:10000000;}\
-        #xpath-canvas {position:relative;}";
     }
   
     Inspector.prototype = {
@@ -20,6 +16,7 @@ var injected = injected || (function() {
         e.stopPropagation && e.stopPropagation();
         if (e.target.id !== this.contentNode) {
           const XPath = this.getXPath(e.target);
+          this.XPath = XPath;
           const contentNode = document.getElementById(this.contentNode);
           if (contentNode) {
             contentNode.innerText = XPath;
@@ -29,9 +26,20 @@ var injected = injected || (function() {
             contentHtml.id = this.contentNode;
             document.body.appendChild(contentHtml);
           }
+
+          this.options.clipboard && ( this.copyText(XPath) );
         }
       },
-  
+
+      copyText: function(XPath) {
+        var hdInp = document.createElement("input");
+        hdInp.setAttribute("value", XPath);
+        document.body.appendChild(hdInp);
+        hdInp.select();      
+        document.execCommand("copy");
+        document.body.removeChild(hdInp);
+      },
+      
       draw: function(e) {
         const canvas = document.getElementById(this.canvasNode);
         const context = canvas.getContext('2d');
@@ -109,12 +117,40 @@ var injected = injected || (function() {
   
       addListeners: function() {
         document.addEventListener('click', this.getData);
-        document.addEventListener('mouseover', this.draw);
+        this.options.inspector && ( document.addEventListener('mouseover', this.draw) );
       },
   
       removeListeners: function() {
         document.removeEventListener('click', this.getData);
-        document.removeEventListener('mouseover', this.draw);
+        this.options.inspector && ( document.removeEventListener('mouseover', this.draw) );
+      },
+
+      getOptions: function() {
+        const storage = chrome.storage && (chrome.storage.local)
+        const promise = storage.get({
+          inspector: true,
+          clipboard: true,
+          position: 'bl'
+        }, this.setOptions);
+        (promise && promise.then) && (promise.then(this.setOptions()));
+      },
+
+      setOptions: function(options) {
+        this.options = options;
+        let position = "bottom:0;left:0";
+        switch (options.position) {
+          case 'tl': position = "top:0;left:0"; break;
+          case 'tr': position = "top:0;right:0"; break;
+          case 'br': position = "bottom:0;right:0"; break;
+          default: break;
+        }
+        this.styles = `\
+        * {cursor:crosshair!important;}\
+        #xpath-wrap {pointer-events:none;top:0;position:absolute;z-index:10000000;}\
+        #xpath-content {${position};cursor:initial!important;padding:10px;background:gray;color:white;position:fixed;font-size:14px;z-index:10000000;}\
+        #xpath-canvas {position:relative;}`;
+
+        this.activate();
       },
   
       getXPath: function(el) {
@@ -152,13 +188,14 @@ var injected = injected || (function() {
     };
   
     const inspect = new Inspector();
-  
+    
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       if (request.action === 'activate') {
-        return inspect.activate();
+        return inspect.getOptions();
       } else {
         return inspect.deactivate();
       }
     });
+
     return true;
   })();
