@@ -3,7 +3,7 @@
   "name": "xPath Finder",
   "description": "Click on any element to get the xPath",
   "homepage_url": "https://github.com/trembacz/xpath-finder",
-  "version": "0.9",
+  "version": "0.9.1",
   "icons": {
     "64": "icons/default-64.png"
   },
