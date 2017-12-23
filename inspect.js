@@ -12,6 +12,7 @@ var injected = injected || (function() {
   
     Inspector.prototype = {
       getData: function(e) {
+        e.stopImmediatePropagation();
         e.preventDefault && e.preventDefault();
         e.stopPropagation && e.stopPropagation();
         if (e.target.id !== this.contentNode) {
@@ -116,12 +117,12 @@ var injected = injected || (function() {
       },
   
       addListeners: function() {
-        document.addEventListener('click', this.getData);
+        document.body.addEventListener('click', this.getData);
         this.options.inspector && ( document.addEventListener('mouseover', this.draw) );
       },
   
       removeListeners: function() {
-        document.removeEventListener('click', this.getData);
+        document.body.removeEventListener('click', this.getData);
         this.options.inspector && ( document.removeEventListener('mouseover', this.draw) );
       },
 
