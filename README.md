@@ -7,7 +7,7 @@ https://addons.mozilla.org/addon/xpath_finder/
 https://chrome.google.com/webstore/detail/xpath-finder/ihnknokegkbpmofmafnkoadfjkhlogph
 
 ## Options
-![](https://i.imgur.com/YrZtE5v.png)
+![](https://i.imgur.com/4rJqlpp.png)
 
 ## Usage
 1. Click on the plugin icon, cursor will be changed to the **crosshair**
