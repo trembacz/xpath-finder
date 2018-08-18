@@ -131,6 +131,7 @@ var injected = injected || (function() {
         const promise = storage.get({
           inspector: true,
           clipboard: true,
+          shortid: true,
           position: 'bl'
         }, this.setOptions);
         (promise && promise.then) && (promise.then(this.setOptions()));
@@ -155,7 +156,7 @@ var injected = injected || (function() {
       },
   
       getXPath: function(el) {
-        if (el.id) {
+        if (el.id && this.options.shortid) {
           return `//*[@id="${el.id}"]`;
         }
         const parts = [];
