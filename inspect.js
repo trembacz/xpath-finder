@@ -1,5 +1,5 @@
 var injected = injected || (function() {
-  
+
     const Inspector = function() {
       this.getData = this.getData.bind(this);
       this.draw = this.draw.bind(this);
@@ -9,7 +9,7 @@ var injected = injected || (function() {
       this.canvasNode = 'xpath-canvas';
       this.cssNode = 'xpath-css';
     }
-  
+
     Inspector.prototype = {
       getData: function(e) {
         e.stopImmediatePropagation();
@@ -191,7 +191,7 @@ var injected = injected || (function() {
   
     const inspect = new Inspector();
     
-    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    chrome.runtime.onMessage.addListener(function(request) {
       if (request.action === 'activate') {
         return inspect.getOptions();
       } else {
