@@ -117,12 +117,12 @@ var injected = injected || (function() {
       },
   
       addListeners: function() {
-        document.body.addEventListener('click', this.getData);
+        document.addEventListener('click', this.getData, true);
         this.options.inspector && ( document.addEventListener('mouseover', this.draw) );
       },
   
       removeListeners: function() {
-        document.body.removeEventListener('click', this.getData);
+        document.removeEventListener('click', this.getData, true);
         this.options.inspector && ( document.removeEventListener('mouseover', this.draw) );
       },
 
