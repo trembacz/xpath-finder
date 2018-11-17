@@ -58,5 +58,13 @@ function isSupportedProtocol(urlString) {
   return supportedProtocols.indexOf(url.protocol) != -1;
 }
 
+chrome.commands.onCommand.addListener(command => {
+  if(command === "toggle-xpath"){
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      toggle(tabs[0]);
+    });
+  }
+});
+
 chrome.tabs.onUpdated.addListener(getActiveTab);
 chrome.browserAction.onClicked.addListener(toggle);
