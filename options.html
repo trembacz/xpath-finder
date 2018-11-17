@@ -5,6 +5,9 @@
     <style>
       label { padding: 5px; margin-left: 5px; min-width: 200px; display: inline-block; }
       label span { font-size: 0.9em; }
+      #shortcut { width: 20px; }
+      .command { font-weight: bold; }
+      .desc { display: block; font-size: 0.9em; padding: 5px; margin-left: 5px; }
       .submit { margin-left: 10px; padding: 5px 10px; background: #f9f9fa; border: 1px solid #ccc; }
       .submit:hover { background: #ebebeb; cursor: pointer; }
       .status { padding:10px; color: #008000; min-height: 40px; }
@@ -32,6 +35,13 @@
             <option value="br">Bottom right</option>
             <option value="bl" selected>Bottom left</option>
           </select>
+        </div>
+        <div class="options-elem">          
+          <label for="shortcut">Keyboard shortcut:</label>
+          <span class="command">CTRL+SHIFT+</span>      
+          <input type="text" required maxlength="1" id="shortcut" pattern="[A-Z]">
+          <button id="reset" type="reset">Reset</button>
+          <span class="desc">Shortcut is editable only in Firefox version of extension. Only A-Z capital letters allowed, please remember that you can't override browser default shortcuts.</span>
         </div>
         <div class="status"></div>
         <button type="submit" class="submit">Save options</button>
