@@ -1,203 +1,296 @@
-var injected = injected || (function() {
+/* globals chrome */
+(() => {
+	class Inspector {
+		constructor() {
+			this.win = window;
+			this.doc = window.document;
 
-    const Inspector = function() {
-      this.getData = this.getData.bind(this);
-      this.draw = this.draw.bind(this);
-      this.setOptions = this.setOptions.bind(this);
-      this.contentNode = 'xpath-content';
-      this.wrapNode = 'xpath-wrap';
-      this.canvasNode = 'xpath-canvas';
-      this.cssNode = 'xpath-css';
-    }
+			this.draw = this.draw.bind(this);
+			this.getData = this.getData.bind(this);
+			this.setOptions = this.setOptions.bind(this);
 
-    Inspector.prototype = {
-      getData: function(e) {
-        e.stopImmediatePropagation();
-        e.preventDefault && e.preventDefault();
-        e.stopPropagation && e.stopPropagation();
-        if (e.target.id !== this.contentNode) {
-          const XPath = this.getXPath(e.target);
-          this.XPath = XPath;
-          const contentNode = document.getElementById(this.contentNode);
-          if (contentNode) {
-            contentNode.innerText = XPath;
-          } else {
-            const contentHtml = document.createElement("div");
-            contentHtml.innerText = XPath;
-            contentHtml.id = this.contentNode;
-            document.body.appendChild(contentHtml);
-          }
+			this.cssNode = 'xpath-css';
+			this.contentNode = 'xpath-content';
+			this.overlayElement = 'xpath-overlay';
+		}
 
-          this.options.clipboard && ( this.copyText(XPath) );
-        }
-      },
+		getData(e) {
+			e.stopImmediatePropagation();
+			e.preventDefault && e.preventDefault();
+			e.stopPropagation && e.stopPropagation();
+			if (e.target.id !== this.contentNode) {
+				const XPath = this.getXPath(e.target);
+				this.XPath = XPath;
+				const contentNode = document.getElementById(this.contentNode);
+				if (contentNode) {
+					contentNode.innerText = XPath;
+				} else {
+					const contentHtml = document.createElement('div');
+					contentHtml.innerText = XPath;
+					contentHtml.id = this.contentNode;
+					document.body.appendChild(contentHtml);
+				}
+				this.options.clipboard && ( this.copyText(XPath) );
+			}
+		}
 
-      copyText: function(XPath) {
-        var hdInp = document.createElement("input");
-        hdInp.setAttribute("value", XPath);
-        document.body.appendChild(hdInp);
-        hdInp.select();      
-        document.execCommand("copy");
-        document.body.removeChild(hdInp);
-      },
-      
-      draw: function(e) {
-        const canvas = document.getElementById(this.canvasNode);
-        const context = canvas.getContext('2d');
-        this.width = canvas.width = window.innerWidth - 20;
-        this.height = canvas.height = window.innerHeight;
+		getOptions() {
+			const storage = chrome.storage && (chrome.storage.local);
+			const promise = storage.get({
+				inspector: true,
+				clipboard: true,
+				shortid: true,
+				position: 'bl'
+			}, this.setOptions);
+			(promise && promise.then) && (promise.then(this.setOptions()));
+		}
 
-        const iStyle = e.target.getBoundingClientRect();
-        const cStyle = window.getComputedStyle(e.target);       
-  
-        const item = {
-          width: iStyle.width,
-          height: iStyle.height,
-          top: iStyle.top,
-          left: iStyle.left,
-          pdTop: parseInt(cStyle.paddingTop, 10),
-          pdRight: parseInt(cStyle.paddingRight, 10),
-          pdBottom: parseInt(cStyle.paddingBottom, 10),
-          pdLeft: parseInt(cStyle.paddingLeft, 10)
-        };
-  
-        const width = item.width - item.pdRight - item.pdLeft;
-        const height = item.height - item.pdBottom - item.pdTop;
-  
-        context.fillStyle = 'rgba(68,182,226,0.3)';
-        context.fillRect(
-          item.left + item.pdLeft,
-          item.top + item.pdTop,
-          width,
-          height
-        );
-  
-        canvas.style.top = `${Math.abs(document.body.getBoundingClientRect().top)}px`;
-      },
-  
-      activate: function() {
-        this.addStyles();
-        this.addHtml();
-        this.addListeners();
-      },
-  
-      deactivate: function() {
-        this.removeStyles();
-        this.removeHtml();
-        this.removeListeners();
-      },
+		setOptions(options) {
+			this.options = options;
+			let position = 'bottom:0;left:0';
+			switch (options.position) {
+				case 'tl': position = 'top:0;left:0'; break;
+				case 'tr': position = 'top:0;right:0'; break;
+				case 'br': position = 'bottom:0;right:0'; break;
+				default: break;
+			}
+			this.styles = `*{cursor:crosshair!important;}#xpath-content{${position};cursor:initial!important;padding:10px;background:gray;color:white;position:fixed;font-size:14px;z-index:10000001;}`;
+			this.activate();
+		}
 
-      addStyles: function() {
-        if (!document.getElementById(this.cssNode)) {
-          const styles = document.createElement("style");
-          styles.innerText = this.styles;
-          styles.id = this.cssNode;
-          document.getElementsByTagName("head")[0].appendChild(styles);
-        }
-      },
-  
-      removeStyles: function() {
-        const cssNode = document.getElementById(this.cssNode);
-        cssNode && cssNode.remove();
-      },
-  
-      addHtml: function() {
-        if (!document.getElementById(this.wrapNode)) {
-          let outerHtml = `<div id="${this.wrapNode}"><canvas id="${this.canvasNode}" /></div>`;
-          outerHtml = new DOMParser().parseFromString(outerHtml, "text/html");
-          document.body.appendChild(outerHtml.getElementById(this.wrapNode));
-        }
-      },
-  
-      removeHtml: function() {
-        const wrapNode = document.getElementById(this.wrapNode);
-        const contentNode = document.getElementById(this.contentNode);
-        wrapNode && wrapNode.remove();
-        contentNode && contentNode.remove();
-      },
-  
-      addListeners: function() {
-        document.addEventListener('click', this.getData, true);
-        this.options.inspector && ( document.addEventListener('mouseover', this.draw) );
-      },
-  
-      removeListeners: function() {
-        document.removeEventListener('click', this.getData, true);
-        this.options.inspector && ( document.removeEventListener('mouseover', this.draw) );
-      },
+		createOverlayElements() {
+			const overlayStyles = {
+				background: 'rgba(120, 170, 210, 0.7)',
+				padding: 'rgba(77, 200, 0, 0.3)',
+				margin: 'rgba(255, 155, 0, 0.3)',
+				border: 'rgba(255, 200, 50, 0.3)'
+			};
 
-      getOptions: function() {
-        const storage = chrome.storage && (chrome.storage.local)
-        const promise = storage.get({
-          inspector: true,
-          clipboard: true,
-          shortid: true,
-          position: 'bl'
-        }, this.setOptions);
-        (promise && promise.then) && (promise.then(this.setOptions()));
-      },
+			this.container = this.doc.createElement('div');
+			this.node = this.doc.createElement('div');
+			this.border = this.doc.createElement('div');
+			this.padding = this.doc.createElement('div');
+			this.content = this.doc.createElement('div');
 
-      setOptions: function(options) {
-        this.options = options;
-        let position = "bottom:0;left:0";
-        switch (options.position) {
-          case 'tl': position = "top:0;left:0"; break;
-          case 'tr': position = "top:0;right:0"; break;
-          case 'br': position = "bottom:0;right:0"; break;
-          default: break;
-        }
-        this.styles = `\
-        * {cursor:crosshair!important;}\
-        #xpath-wrap {pointer-events:none;top:0;position:absolute;z-index:10000000;}\
-        #xpath-content {${position};cursor:initial!important;padding:10px;background:gray;color:white;position:fixed;font-size:14px;z-index:10000000;}\
-        #xpath-canvas {position:relative;}`;
+			this.border.style.borderColor = overlayStyles.border;
+			this.padding.style.borderColor = overlayStyles.padding;
+			this.content.style.backgroundColor = overlayStyles.background;
 
-        this.activate();
-      },
-  
-      getXPath: function(el) {
-        if (el.id && this.options.shortid) {
-          return `//*[@id="${el.id}"]`;
-        }
-        const parts = [];
-        while (el && el.nodeType === Node.ELEMENT_NODE) {
-          let nbOfPreviousSiblings = 0;
-          let hasNextSiblings = false;
-          let sibling = el.previousSibling;
-          while (sibling) {
-            if (sibling.nodeType !== Node.DOCUMENT_TYPE_NODE &&
-                sibling.nodeName == el.nodeName) {
-              nbOfPreviousSiblings++;
-            }
-            sibling = sibling.previousSibling;
-          }
-          sibling = el.nextSibling;
-          while (sibling) {
-            if (sibling.nodeName == el.nodeName) {
-              hasNextSiblings = true;
-              break;
-            }
-            sibling = sibling.nextSibling;
-          }
-          const prefix = el.prefix ? el.prefix + ":" : "";
-          const nth = nbOfPreviousSiblings || hasNextSiblings
-                      ? `[${nbOfPreviousSiblings + 1}]` : "";
-          parts.push(prefix + el.localName + nth);
-          el = el.parentNode;
-        }
-        return parts.length ? "/" + parts.reverse().join("/") : "";
-      }
-    };
-  
-    const inspect = new Inspector();
-    
-    chrome.runtime.onMessage.addListener(function(request) {
-      if (request.action === 'activate') {
-        return inspect.getOptions();
-      } else {
-        return inspect.deactivate();
-      }
-    });
+			Object.assign(this.node.style, {
+				borderColor: overlayStyles.margin,
+				pointerEvents: 'none',
+				position: 'fixed'
+			});
 
-    return true;
-  })();
+			this.container.id = this.overlayElement;
+			this.container.style.zIndex = 10000000;
+			this.node.style.zIndex = 10000000;
+
+			this.container.appendChild(this.node);
+			this.node.appendChild(this.border);
+			this.border.appendChild(this.padding);
+			this.padding.appendChild(this.content);
+		}
+
+		removeOverlay() {
+			const overlayHtml = document.getElementById(this.overlayElement);
+			overlayHtml && overlayHtml.remove();
+		}
+
+		copyText(XPath) {
+			const hdInp = document.createElement('textarea');
+			hdInp.textContent = XPath;
+			document.body.appendChild(hdInp);
+			hdInp.select();
+			document.execCommand('copy');
+			hdInp.remove();
+		}
+
+		draw(e) {
+			const node = e.target;
+			if (node.id !== this.contentNode) {
+				this.removeOverlay();
+
+				const box = this.getNestedBoundingClientRect(node, this.win);
+				const dimensions = this.getElementDimensions(node);
+
+				this.boxWrap(dimensions, 'margin', this.node);
+				this.boxWrap(dimensions, 'border', this.border);
+				this.boxWrap(dimensions, 'padding', this.padding);
+
+				Object.assign(this.content.style, {
+					height: box.height - dimensions.borderTop - dimensions.borderBottom - dimensions.paddingTop - dimensions.paddingBottom + 'px',
+					width: box.width - dimensions.borderLeft - dimensions.borderRight - dimensions.paddingLeft - dimensions.paddingRight + 'px',
+				});
+
+				Object.assign(this.node.style, {
+					top: box.top - dimensions.marginTop + 'px',
+					left: box.left - dimensions.marginLeft + 'px',
+				});
+
+				this.doc.body.appendChild(this.container);
+			}
+		}
+
+		activate() {
+			this.createOverlayElements();
+			// add styles
+			if (!document.getElementById(this.cssNode)) {
+				const styles = document.createElement('style');
+				styles.innerText = this.styles;
+				styles.id = this.cssNode;
+				document.getElementsByTagName('head')[0].appendChild(styles);
+			}
+			// add listeners
+			document.addEventListener('click', this.getData, true);
+			this.options.inspector && ( document.addEventListener('mouseover', this.draw) );
+		}
+
+		deactivate() {
+			// remove styles
+			const cssNode = document.getElementById(this.cssNode);
+			cssNode && cssNode.remove();
+			// remove overlay
+			this.removeOverlay();
+			// remove xpath html
+			const contentNode = document.getElementById(this.contentNode);
+			contentNode && contentNode.remove();
+			// remove listeners
+			document.removeEventListener('click', this.getData, true);
+			this.options && this.options.inspector && ( document.removeEventListener('mouseover', this.draw) );
+		}
+
+		getXPath(el) {
+			let nodeElem = el;
+			if (nodeElem.id && this.options.shortid) {
+				return `//*[@id="${nodeElem.id}"]`;
+			}
+			const parts = [];
+			while (nodeElem && nodeElem.nodeType === Node.ELEMENT_NODE) {
+				let nbOfPreviousSiblings = 0;
+				let hasNextSiblings = false;
+				let sibling = nodeElem.previousSibling;
+				while (sibling) {
+					if (sibling.nodeType !== Node.DOCUMENT_TYPE_NODE && sibling.nodeName === nodeElem.nodeName) {
+						nbOfPreviousSiblings++;
+					}
+					sibling = sibling.previousSibling;
+				}
+				sibling = nodeElem.nextSibling;
+				while (sibling) {
+					if (sibling.nodeName === nodeElem.nodeName) {
+						hasNextSiblings = true;
+						break;
+					}
+					sibling = sibling.nextSibling;
+				}
+				const prefix = nodeElem.prefix ? nodeElem.prefix + ':' : '';
+				const nth = nbOfPreviousSiblings || hasNextSiblings ? `[${nbOfPreviousSiblings + 1}]` : '';
+				parts.push(prefix + nodeElem.localName + nth);
+				nodeElem = nodeElem.parentNode;
+			}
+			return parts.length ? '/' + parts.reverse().join('/') : '';
+		}
+
+		getElementDimensions(domElement) {
+			const calculatedStyle = window.getComputedStyle(domElement);
+			return {
+				borderLeft: +calculatedStyle.borderLeftWidth.match(/[0-9]*/)[0],
+				borderRight: +calculatedStyle.borderRightWidth.match(/[0-9]*/)[0],
+				borderTop: +calculatedStyle.borderTopWidth.match(/[0-9]*/)[0],
+				borderBottom: +calculatedStyle.borderBottomWidth.match(/[0-9]*/)[0],
+				marginLeft: +calculatedStyle.marginLeft.match(/[0-9]*/)[0],
+				marginRight: +calculatedStyle.marginRight.match(/[0-9]*/)[0],
+				marginTop: +calculatedStyle.marginTop.match(/[0-9]*/)[0],
+				marginBottom: +calculatedStyle.marginBottom.match(/[0-9]*/)[0],
+				paddingLeft: +calculatedStyle.paddingLeft.match(/[0-9]*/)[0],
+				paddingRight: +calculatedStyle.paddingRight.match(/[0-9]*/)[0],
+				paddingTop: +calculatedStyle.paddingTop.match(/[0-9]*/)[0],
+				paddingBottom: +calculatedStyle.paddingBottom.match(/[0-9]*/)[0]
+			};
+		}
+
+		getOwnerWindow(node) {
+			if (!node.ownerDocument) { return null; }
+			return node.ownerDocument.defaultView;
+		}
+
+		getOwnerIframe(node) {
+			const nodeWindow = this.getOwnerWindow(node);
+			if (nodeWindow) {
+				return nodeWindow.frameElement;
+			}
+			return null;
+		}
+
+		getBoundingClientRectWithBorderOffset(node) {
+			const dimensions = this.getElementDimensions(node);
+			return this.mergeRectOffsets([
+				node.getBoundingClientRect(),
+				{
+					top: dimensions.borderTop,
+					left: dimensions.borderLeft,
+					bottom: dimensions.borderBottom,
+					right: dimensions.borderRight,
+					width: 0,
+					height: 0
+				}
+			]);
+		}
+
+		mergeRectOffsets(rects) {
+			return rects.reduce((previousRect, rect) => {
+				if (previousRect === null) { return rect; }
+				return {
+					top: previousRect.top + rect.top,
+					left: previousRect.left + rect.left,
+					width: previousRect.width,
+					height: previousRect.height,
+					bottom: previousRect.bottom + rect.bottom,
+					right: previousRect.right + rect.right
+				};
+			});
+		}
+
+		getNestedBoundingClientRect(node, boundaryWindow) {
+			const ownerIframe = this.getOwnerIframe(node);
+			if (ownerIframe && ownerIframe !== boundaryWindow) {
+				const rects = [node.getBoundingClientRect()];
+				let currentIframe = ownerIframe;
+				let onlyOneMore = false;
+				while (currentIframe) {
+					const rect = this.getBoundingClientRectWithBorderOffset(currentIframe);
+					rects.push(rect);
+					currentIframe = this.getOwnerIframe(currentIframe);
+					if (onlyOneMore) { break; }
+					if (currentIframe && this.getOwnerWindow(currentIframe) === boundaryWindow) {
+						onlyOneMore = true;
+					}
+				}
+				return this.mergeRectOffsets(rects);
+			}
+			return node.getBoundingClientRect();
+		}
+
+		boxWrap(dimensions, parameter, node) {
+			Object.assign(node.style, {
+				borderTopWidth: dimensions[parameter + 'Top'] + 'px',
+				borderLeftWidth: dimensions[parameter + 'Left'] + 'px',
+				borderRightWidth: dimensions[parameter + 'Right'] + 'px',
+				borderBottomWidth: dimensions[parameter + 'Bottom'] + 'px',
+				borderStyle: 'solid'
+			});
+		}
+  }
+
+	const inspect = new Inspector();
+
+	chrome.runtime.onMessage.addListener(request => {
+		if (request.action === 'activate') {
+			return inspect.getOptions();
+		}
+		return inspect.deactivate();
+	});
+
+	return true;
+})();

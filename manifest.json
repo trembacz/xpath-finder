@@ -3,7 +3,7 @@
   "name": "xPath Finder",
   "description": "Click on any element to get the xPath",
   "homepage_url": "https://github.com/trembacz/xpath-finder",
-  "version": "0.9.7",
+  "version": "1.0.0",
   "icons": {
     "64": "icons/default-64.png"
   },
@@ -14,14 +14,14 @@
     "default_icon": "icons/default-64.png",
     "default_title": "Click on any element to get the xPath"
   },
-  "content_scripts": [{ 
+  "content_scripts": [{
     "all_frames": true,
     "matches": ["<all_urls>"],
     "js":["inspect.js"]
   }],
   "commands": {
     "toggle-xpath": {
-      "suggested_key": { 
+      "suggested_key": {
         "default": "Ctrl+Shift+U",
         "mac": "Command+Shift+U"
       },

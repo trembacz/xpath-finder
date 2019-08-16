@@ -1,70 +1,65 @@
-let tabs = {};
-chrome = this.browser || this.chrome;
+const browserAppData = this.browser || this.chrome;
+const tabs = {};
 const inspectFile = 'inspect.js';
 const activeIcon = 'active-64.png';
 const defaultIcon = 'default-64.png';
 
 const inspect = {
-  toggleActivate: function(id, type, icon) {
-    this.id = id;
-    chrome.tabs.executeScript(id, {
-      file: inspectFile
-    }, function() {  chrome.tabs.sendMessage(id, { action: type }); }.bind(this));
-
-    chrome.browserAction.setIcon({ tabId: id, path: { 19: "icons/" + icon } });
-  }
+	toggleActivate: (id, type, icon) => {
+		this.id = id;
+		browserAppData.tabs.executeScript(id, { file: inspectFile }, () => { browserAppData.tabs.sendMessage(id, { action: type }); });
+		browserAppData.browserAction.setIcon({ tabId: id, path: { 19: 'icons/' + icon } });
+	}
 };
 
+function isSupportedProtocolAndFileType(urlString) {
+	if (!urlString) { return false; }
+	const supportedProtocols = ['https:', 'http:', 'file:'];
+	const notSupportedFiles = ['xml', 'pdf', 'rss'];
+	const extension = urlString.split('.').pop().split(/\#|\?/)[0];
+	const url = document.createElement('a');
+	url.href = urlString;
+	return supportedProtocols.indexOf(url.protocol) !== -1 && notSupportedFiles.indexOf(extension) === -1;
+}
+
 function toggle(tab) {
-  if (isSupportedProtocol(tab.url)) {
-    if (!tabs[tab.id]) {
-      tabs[tab.id] = Object.create(inspect);
-      inspect.toggleActivate(tab.id, 'activate', activeIcon);
-    } else {
-      inspect.toggleActivate(tab.id, 'deactivate', defaultIcon);
-      for (let tabId in tabs) {
-        if (tabId == tab.id) delete tabs[tabId];
-      }
-    }
-  }
+	if (isSupportedProtocolAndFileType(tab.url)) {
+		if (!tabs[tab.id]) {
+			tabs[tab.id] = Object.create(inspect);
+			inspect.toggleActivate(tab.id, 'activate', activeIcon);
+		} else {
+			inspect.toggleActivate(tab.id, 'deactivate', defaultIcon);
+			for (const tabId in tabs) {
+				if (tabId == tab.id) delete tabs[tabId];
+			}
+		}
+	}
 }
 
 function deactivateItem(tab) {
-  if (tab[0]) {
-    if (isSupportedProtocol(tab[0].url)) {
-      for (let tabId in tabs) {
-        if (tabId == tab[0].id) {
-          delete tabs[tabId];
-          inspect.toggleActivate(tab[0].id, 'deactivate', defaultIcon);
-        }
-      }
-    }
-  }
+	if (tab[0]) {
+		if (isSupportedProtocolAndFileType(tab[0].url)) {
+			for (const tabId in tabs) {
+				if (tabId == tab[0].id) {
+					delete tabs[tabId];
+					inspect.toggleActivate(tab[0].id, 'deactivate', defaultIcon);
+				}
+			}
+		}
+	}
 }
 
 function getActiveTab() {
-  chrome.tabs.query({
-      active: true,
-      currentWindow: true
-  }, function(tabs) {
-      deactivateItem(tabs);
-  });  
+	browserAppData.tabs.query({ active: true, currentWindow: true }, tab => { deactivateItem(tab); });
 }
 
-function isSupportedProtocol(urlString) {
-  const supportedProtocols = ["https:", "http:", "file:"];
-  const url = document.createElement('a');
-  url.href = urlString;
-  return supportedProtocols.indexOf(url.protocol) != -1;
-}
-
-chrome.commands.onCommand.addListener(command => {
-  if(command === "toggle-xpath"){
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-      toggle(tabs[0]);
-    });
-  }
+browserAppData.commands.onCommand.addListener(command => {
+	if (command === 'toggle-xpath') {
+		browserAppData.tabs.query({ active: true, currentWindow: true }, tab => {
+			toggle(tab[0]);
+		});
+	}
 });
 
-chrome.tabs.onUpdated.addListener(getActiveTab);
-chrome.browserAction.onClicked.addListener(toggle);
+browserAppData.tabs.onUpdated.addListener(getActiveTab);
+browserAppData.browserAction.onClicked.addListener(toggle);
