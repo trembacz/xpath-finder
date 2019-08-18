@@ -1,5 +1,5 @@
 /* globals chrome */
-(() => {
+var xPathFinder = xPathFinder || (() => {
 	class Inspector {
 		constructor() {
 			this.win = window;
