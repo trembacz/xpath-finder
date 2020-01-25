@@ -7,6 +7,7 @@ const defaultIcon = 'default-64.png';
 const inspect = {
 	toggleActivate: (id, type, icon) => {
 		this.id = id;
+
 		browserAppData.tabs.executeScript(id, { file: inspectFile }, () => { browserAppData.tabs.sendMessage(id, { action: type }); });
 		browserAppData.browserAction.setIcon({ tabId: id, path: { 19: 'icons/' + icon } });
 	}
@@ -63,3 +64,23 @@ browserAppData.commands.onCommand.addListener(command => {
 
 browserAppData.tabs.onUpdated.addListener(getActiveTab);
 browserAppData.browserAction.onClicked.addListener(toggle);
+
+// Make cross-origin request to OmniScrapper GQL
+// It is not possible to do that from content scripts anymore.
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    if (request.contentScriptQuery == "querySchemas") {
+			fetch('http://localhost:2300/api/public/graphql', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({query: "{ schemas { id }}"})
+			})
+			.then(r => r.json())
+			.then(data => sendResponse(data));
+
+      return true;
+    }
+  });

@@ -4,6 +4,11 @@ var xPathFinder = xPathFinder || (() => {
 	class Task {
 		constructor() {
 			this.site = window.location.hostname;
+
+			chrome.runtime.sendMessage(
+				{contentScriptQuery: "querySchemas"},
+				schemas => { this.schemas = schemas }
+			);
 		}
 	}
 
@@ -34,10 +39,10 @@ var xPathFinder = xPathFinder || (() => {
         this.XPath = XPath;
         const contentNode = document.getElementById(this.contentNode);
         if (contentNode) {
-          contentNode.innerText = XPath;
+          contentNode.innerText = "LOLKEK" + XPath;
         } else {
           const contentHtml = document.createElement('div');
-          contentHtml.innerText = XPath;
+          contentHtml.innerText = "LOLKEK2" + XPath;
           contentHtml.id = this.contentNode;
           document.body.appendChild(contentHtml);
         }
