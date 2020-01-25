@@ -1,16 +1,17 @@
 /* globals chrome */
 var xPathFinder = xPathFinder || (() => {
 
-	class Task {
-		constructor() {
-			this.site = window.location.hostname;
+  class Task {
+    constructor() {
+      this.site = window.location.hostname;
+      this.schemas = [];
 
-			chrome.runtime.sendMessage(
-				{contentScriptQuery: "querySchemas"},
-				schemas => { this.schemas = schemas }
-			);
-		}
-	}
+      chrome.runtime.sendMessage(
+        {contentScriptQuery: "querySchemas"},
+        schemas => { this.schemas = schemas }
+      );
+    }
+  }
 
   class Inspector {
     constructor() {
@@ -25,9 +26,9 @@ var xPathFinder = xPathFinder || (() => {
       this.contentNode = 'xpath-content';
       this.overlayElement = 'xpath-overlay';
 
-			this.task = new Task();
+      this.task = new Task();
 
-			console.log(this.task)
+      console.log(this.task)
     }
 
     getData(e) {
