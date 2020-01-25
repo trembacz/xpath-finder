@@ -17,7 +17,7 @@
   "content_scripts": [{
     "all_frames": false,
     "matches": ["<all_urls>"],
-    "js":["jquery-3.4.1.min.js", "inspect.js"]
+    "js":["jquery-3.4.1.min.js", "inspect.js", "task.js"]
   }],
   "commands": {
     "toggle-xpath": {
