@@ -15,9 +15,9 @@
     "default_title": "Click on any element to get the xPath"
   },
   "content_scripts": [{
-    "all_frames": true,
+    "all_frames": false,
     "matches": ["<all_urls>"],
-    "js":["inspect.js"]
+    "js":["jquery-3.4.1.min.js", "inspect.js"]
   }],
   "commands": {
     "toggle-xpath": {
@@ -26,6 +26,13 @@
         "mac": "Command+Shift+U"
       },
       "description": "Toggle plugin"
+    },
+    "toggle-omniscrapper-task": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+I",
+        "mac": "Command+Shift+I"
+      },
+      "description": "Toggle omniscrapper tab"
     }
   },
   "options_ui": {

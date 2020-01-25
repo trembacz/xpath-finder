@@ -1,5 +1,12 @@
 /* globals chrome */
 var xPathFinder = xPathFinder || (() => {
+
+	class Task {
+		constructor() {
+			this.site = window.location.hostname;
+		}
+	}
+
   class Inspector {
     constructor() {
       this.win = window;
@@ -12,6 +19,10 @@ var xPathFinder = xPathFinder || (() => {
       this.cssNode = 'xpath-css';
       this.contentNode = 'xpath-content';
       this.overlayElement = 'xpath-overlay';
+
+			this.task = new Task();
+
+			console.log(this.task)
     }
 
     getData(e) {
