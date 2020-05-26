@@ -141,9 +141,16 @@ var xPathFinder = xPathFinder || (() => {
         styles.id = this.cssNode;
         document.getElementsByTagName('head')[0].appendChild(styles);
       }
-      // add listeners
+      // add listeners for all frames and root
       document.addEventListener('click', this.getData, true);
       this.options.inspector && ( document.addEventListener('mouseover', this.draw) );
+      let frameLength = window.parent.frames.length
+      for( var i = 0 ; i < frameLength;i++){
+        let frameDocument = window.parent.frames[i].document
+        frameDocument.addEventListener('click', this.getData, true);
+        this.options.inspector && (frameDocument.addEventListener('mouseover', this.draw) );
+      }
+      
     }
 
     deactivate() {
@@ -155,9 +162,16 @@ var xPathFinder = xPathFinder || (() => {
       // remove xpath html
       const contentNode = document.getElementById(this.contentNode);
       contentNode && contentNode.remove();
-      // remove listeners
+      // remove listeners for all frames and root
       document.removeEventListener('click', this.getData, true);
       this.options && this.options.inspector && ( document.removeEventListener('mouseover', this.draw) );
+      let frameLength = window.parent.frames.length
+      for( var i = 0 ; i < frameLength;i++){
+        let frameDocument = window.parent.frames[i].document
+        frameDocument.removeEventListener('click', this.getData, true);
+        this.options && this.options.inspector && ( frameDocument.removeEventListener('mouseover', this.draw) );
+      }
+      
     }
 
     getXPath(el) {
