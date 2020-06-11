@@ -14,23 +14,26 @@ var xPathFinder = xPathFinder || (() => {
       this.overlayElement = 'xpath-overlay';
     }
 
-    getData(e) {
+    getData(e, iframe) {
       e.stopImmediatePropagation();
       e.preventDefault && e.preventDefault();
       e.stopPropagation && e.stopPropagation();
+
       if (e.target.id !== this.contentNode) {
-        const XPath = this.getXPath(e.target);
-        this.XPath = XPath;
-        const contentNode = document.getElementById(this.contentNode);
+        this.XPath = this.getXPath(e.target);
+        const contentNode   = document.getElementById(this.contentNode);
+        const iframeNode    = window.frameElement || iframe;
+        const contentString = iframeNode ? `Iframe: ${this.getXPath(iframeNode)}<br/>XPath: ${this.XPath}` : this.XPath;
+
         if (contentNode) {
-          contentNode.innerText = XPath;
+          contentNode.innerHTML = contentString;
         } else {
           const contentHtml = document.createElement('div');
-          contentHtml.innerText = XPath;
+          contentHtml.innerHTML = contentString;
           contentHtml.id = this.contentNode;
           document.body.appendChild(contentHtml);
         }
-        this.options.clipboard && ( this.copyText(XPath) );
+        this.options.clipboard && ( this.copyText(this.XPath) );
       }
     }
 
@@ -54,7 +57,7 @@ var xPathFinder = xPathFinder || (() => {
         case 'br': position = 'bottom:0;right:0'; break;
         default: break;
       }
-      this.styles = `*{cursor:crosshair!important;}#xpath-content{${position};cursor:initial!important;padding:10px;background:gray;color:white;position:fixed;font-size:14px;z-index:10000001;}`;
+      this.styles = `body *{cursor:crosshair!important;}#xpath-content{${position};cursor:initial!important;padding:10px;background:gray;color:white;position:fixed;font-size:14px;z-index:10000001;}`;
       this.activate();
     }
 
@@ -144,13 +147,13 @@ var xPathFinder = xPathFinder || (() => {
       // add listeners for all frames and root
       document.addEventListener('click', this.getData, true);
       this.options.inspector && ( document.addEventListener('mouseover', this.draw) );
-      let frameLength = window.parent.frames.length
-      for( var i = 0 ; i < frameLength;i++){
-        let frameDocument = window.parent.frames[i].document
-        frameDocument.addEventListener('click', this.getData, true);
-        this.options.inspector && (frameDocument.addEventListener('mouseover', this.draw) );
+      const frameLength = window.parent.frames.length
+      for (let i = 0 ; i < frameLength; i++) {
+        let frame = window.parent.frames[i];
+        frame.document.addEventListener('click', e => this.getData(e, frame.frameElement), true);
+        this.options.inspector && (frame.document.addEventListener('mouseover', this.draw) );
       }
-      
+
     }
 
     deactivate() {
@@ -165,8 +168,8 @@ var xPathFinder = xPathFinder || (() => {
       // remove listeners for all frames and root
       document.removeEventListener('click', this.getData, true);
       this.options && this.options.inspector && ( document.removeEventListener('mouseover', this.draw) );
-      let frameLength = window.parent.frames.length
-      for( var i = 0 ; i < frameLength;i++){
+      const frameLength = window.parent.frames.length
+      for (let i = 0 ; i < frameLength; i++) {
         let frameDocument = window.parent.frames[i].document
         frameDocument.removeEventListener('click', this.getData, true);
         this.options && this.options.inspector && ( frameDocument.removeEventListener('mouseover', this.draw) );
